@@ -1,48 +1,69 @@
 const express = require('express')
 
-function block_1_basicServer(){
+
+function block_1_httpMethods(){
     return new Promise((resolve)=>{
         const app = express()
-        app.use(express.json)
+         app.use(express.json)
+         
+         const routes ={
+            1: {
+                id:1,
+                name:"Anytime Express",
+                direction :"North"
+            },
+            2: {
+                id:2,
+                name:"Anytime Express 2",
+                direction :"East"
+            }
+         }
         
-        //Normal route 
-        app.get('/menu',(req,res)=>{
-          res.json({
-            iteams:[
-                'thali',
-                'biryani',
+        let nextid = 3
 
-            ]
-          })
+        //list all train 
+        app.get('/routes',(req,res)=>{
+            res.json(Object.values(routes))
         })
 
-       //query param
-        app.get('/search',(req,res)=>{
-            const {q ,limit}=req.query //chaicode.com/cart?q=biryan&limit=5
-            res.json({
-                query :q,
-                limit:limit ||'10'
-            })
+        //single route
+        app.get('/routes/:id',(req,res)=>{
+            const route =routes[req.params.id]
+
+            if(!route) return res.status(404).json({error:"No train on this id"})
+            res.json(route)
+        })
+
+        app.post('/routes',(req,res)=>{
+            const newRoute ={id: nextid++, ...req.body}
+            routes[newRoute.id]=newRoute
+            res.status(201).json(newRoute)
+        })
+
+        app.put("/routes/:id",(req,res)=>{
+            const id = req.params.id
+            if(!routes[id]) return res.status(404).json({error:"dont send something wemt wrong"})
+            routes[id]={id: Number(id), ...req.body}
+        })
+
+        
+        app.patch("/routes/:id",(req,res)=>{
+            const id = req.params.id
+            if(!routes[id]) return res.status(404).json({error:"dont send something wemt wrong"})
+             
+            
+          // todo :complete this routr 
+        })
+
+        
+        app.delete("/routes/:id",(req,res)=>{
+            const id = req.params.id
+            if(!routes[id]) return res.status(404).json({error:"dont send something wemt wrong"})
+            delete routes[id]
+            res.status(204).end()
         })
 
 
-        //Route params
-        app.get('/menu/:id', (req,res)=>{
-         const {id}= req.params
-          res.json({
-            iteam:id,
-            price:149
-          })
-        })
-
-        //post route
-        app.post('/order',(req,res)=>{
-            const order =req.body 
-            res.status(201).json({
-                status :'created',
-                order
-            })
-        })
 
         // now we will make server 
         //0 -> helps us get any port instead of hard coding (never used in production)
@@ -51,40 +72,7 @@ function block_1_basicServer(){
            const base =`http://127.0.1:${port}`
 
            try{
-            //serialization an deserilaization Hw
-            const menuRes = await fetch(`${base}/menu`)
-            const menuData = await menuRes.json()
-            console.log('GET /menu',JSON.stringify(menuData))
-
-            console.log("+++++++++++++++++++++++++++++++++++")
-
-            //creating 2nd end point 
-            const searchRes=  await fetch(`${base}/search?q=biryani&limit`)
-            const searchData = await searchRes.json()
-            console.log('GET /search',JSON.stringify(searchData))
-
-            console.log("+++++++++++++++++++++++++++++++++++")
-
-            //handling menu
-            const iteamRes = await fetch(`${base}/menu/42`)
-            const iteamResData = await iteamRes.json()
-             console.log('POST /menu',JSON.stringify(menuIteamData))
-
-             console.log("+++++++++++++++++++++++++++++++++++")
-
-             const createOrder = await fetch(`${base}/order`,{
-                method:'POST',
-                headers:{
-                    'Content-Type':'application/json',
-                    body:JSON.stringify({
-                        dish:'biryani',
-                        quantity:2
-                    })
-                }
-             })
-             const createOrderData = await createOrder.json()
-             console.log('POST /order',JSON.stringify(createOrderData))
-
+           
            }
            catch(error){
               console.log(error)
@@ -170,8 +158,9 @@ function block_2_response(){
     }) 
 }
 
+
 async function main(){
-    await block_1_basicServer()
+    await block_1_httpMethods()
      await block_2_response()
     process.exit(0)
 }
