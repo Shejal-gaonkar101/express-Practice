@@ -1,5 +1,5 @@
 const express = require('express')
-
+const getFile = require('./01-express-intro')
 
 function block_1_httpMethods(){
     return new Promise((resolve)=>{
@@ -50,9 +50,15 @@ function block_1_httpMethods(){
         app.patch("/routes/:id",(req,res)=>{
             const id = req.params.id
             if(!routes[id]) return res.status(404).json({error:"dont send something wemt wrong"})
-             
             
-          // todo :complete this routr 
+            const updates = req.body;
+
+    // merge old data with new updates
+            routes[id] = {
+               ...routes[id],
+               ...updates
+            };
+          // todo :complete this routr -done
         })
 
         
@@ -72,7 +78,21 @@ function block_1_httpMethods(){
            const base =`http://127.0.1:${port}`
 
            try{
-           
+             
+            const listRes =await fetch(`${base}/routes`)
+            const listData = await listRes.json()
+
+            const createRes = await fetch(`${base}/route`, {
+                method:"POST",
+                header :{
+                    'Content-Type':"application/json",
+                    body:JSON.stringify({
+                        name :"karwar-sirsi",
+                        direction:"south"
+                    })
+                }
+            })
+            const created = await createRes.json()
            }
            catch(error){
               console.log(error)
@@ -89,55 +109,22 @@ function block_1_httpMethods(){
 function block_2_response(){
     return new promise ((resolve)=>{
         const app = express()
-
-        //Types of response 
-
-        //send text
-        app.get('/text',(req,res)=>{
-            res.send("Hello from chaicode")
-
+        app.use(express.json())
+        //files/docs/readme.txt
+        app.get('/files/*filepath',(req,res)=>{
+            const filepath =req.params.filepath
+            res.json({filepath, type:"wildcard"})
         })
 
-        app.get('/json',(req,res)=>{
-            res.json({
-                framework :"Express",
-                version:"6.1.1"
-            })
-        })
+        app
+           .route("/scheduler")
+           .get((req,res)=>{})
+           .post((req,res)=>{})
+           .put((req,res)=>{})
+           .delete((req,res)=>{})
 
-        app.get ('/not-founnd',(req,res)=>{
-            res.status(404).json({
-                error:"Page not found"
-            })
-        })
-
-        app.get('/health',(req,res)=>{
-            res.sendStatus(200)
-        })
-
-        app.get('./old-menu',(req,res)=>{
-            //if we want to see old menu
-            res.redirect(301,'/new-menu')
-            //redirect is special method where there is no then 
-
-        })
-
-        app.get('/xml',(req,res)=>{
-            res.type('application/xml').send('<dish> <name>Biryani</name></dish>')
-        })
-
-        app.get('/custom-header',(req,res)=>{
-           res.set('X-powered-By','KeepCoding')
-           res.set('X-Request-Id','1234568')
-           res.json({
-            message:'custom header set'
-           })
-           //Uses of these headers in CORS ,caching ,tracing 
-
-        })
-
-        app.get('/no-content',(req,res)=>{
-            res.status(204).end()
+        app.use("/api",(req,res)=>{
+            
         })
 
         const server =app.listen(0,async()=>{
